@@ -39,9 +39,8 @@ class Simulate():
     def calculate_probabilities(self):
     
         action_array = self.Aarray[1:]
-    
-        unique_actions = np.unique(action_array)
-        unique_actions = unique_actions[~np.isnan(unique_actions)]
+        
+        unique_actions = np.arange(self.env.n_actions)
     
         probabilities = []
         for action in unique_actions:
