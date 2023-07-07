@@ -31,6 +31,9 @@ class Environment():
         self.omega1 = float(self.cg[0]/self.productivity) # The theoretical ideal rate of labor
         
         self.reward_func = None
+        self.include_null = True
+        
+        self.set_include_null(self.include_null)
         
         self.initialize()
     
@@ -54,10 +57,43 @@ class Environment():
         
         self.reward_func = reward_func
         
+    def set_include_null(self, include_null:bool):
+        
+        if include_null:
+            self.include_null = True
+            
+            if self.n_actions == 3:
+                self.action_dict = {0: self.null_action, 1: self.produce, 2: self.consume}
+                
+            elif self.n_actions == 4:
+                self.action_dict = {0: self.null_action, 1: self.produce, 2: self.consume, 3: self.exchange}
+                
+            else:
+                raise ValueError('Incompatible Number of Actions with Null Included')
+                
+        else:
+            self.include_null = False
+            
+            if self.n_actions == 2:
+                self.action_dict = {0: self.produce, 1: self.consume}
+                
+            elif self.n_actions == 3:
+                self.action_dict = {0: self.produce, 1: self.consume, 2: self.exchange}
+                
+            else:
+                raise ValueError('Incompatible Number of Actions with Null Not Included')
+                
+        
 
     def reward_function_consumptionError(self):
         
         reward = - np.sum(self.agent.c_error)
+        
+        return reward
+    
+    def reward_function_consumptionError_exponential(self):
+        
+        reward = np.sum(np.exp(-self.agent.c_error))
         
         return reward
     
@@ -66,6 +102,15 @@ class Environment():
         reward =  - np.sum(self.agent.D)
         
         return reward
+    
+    def reward_function_deficit_exponential(self):
+        
+        reward = np.sum(np.exp(-self.agent.D))
+        
+        return reward
+    
+    def null_action(self):
+        return 0
     
     def produce(self):
         
@@ -118,38 +163,7 @@ class Environment():
         
     def perform_action(self, action):
         
-        if self.n_actions == 2:
-            
-            if action == 0:
-                self.produce()
-                
-            elif action == 1:
-                self.consume()
-                
-        elif self.n_actions == 3:
-            
-            if action == 0:
-                pass
-            
-            elif action == 1:
-                self.produce()
-                
-            elif action == 2:
-                self.consume()
-                
-        elif self.n_actions == 4:
-             
-            if action == 0:
-                pass
-            
-            elif action == 1:
-                self.produce()
-             
-            elif action == 2:
-                self.consume() 
-             
-            elif action == 3:
-                self.exchange()
+        self.action_dict[action]()
 
     def update_deficit(self):
         
@@ -161,9 +175,15 @@ class Environment():
         if self.reward_func == 'error':
             reward = self.reward_function_consumptionError()
             
+        elif self.reward_func == 'exponential error':
+            reward = self.reward_function_consumptionError_exponential()
+            
         elif self.reward_func == 'deficit':
             reward = self.reward_function_deficit()
             
+        elif self.reward_func == 'exponential deficit':
+            reward = self.reward_function_deficit_exponential()
+                    
         else:
             reward = self.reward_function_consumptionError()
             
