@@ -8,12 +8,14 @@ Created on Wed Jul 12 22:25:25 2023
 import numpy as np
 
 class Environment:
-    def __init__(self, dt, agent_list, inst_list, dist_list): # include an action dict that specifies which number goes to which action
+    def __init__(self, dt, agent_list, inst_list, market): # include an action dict that specifies which number goes to which action
         
         
         self.agent_list = agent_list
         self.inst_list = inst_list
-        self.dist_list = dist_list
+        #self.dist_list = dist_list
+        
+        self.market = market
         
         #self.action_dict = None
         #self.reward_dict 
@@ -43,6 +45,8 @@ class Environment:
             
     def env_step(self, action_dict):
         
+        
+        self.reset_market()
         self.reset_flows() # May want to move into the first line of each of the below perform decisions. So we minimizes looping through agents
         self.perform_actions(action_dict) # Here is where q, c, c_error, and Q get updated.
         self.update_consumption_deficit() # This is where D gets updated
@@ -159,13 +163,19 @@ class Environment:
             #print()
             
     def perform_exchange(self, action_dict):
+        
+        # Grab all exchanging agents
+        ExchangeDict = {n:a for (n,a) in action_dict.items() if a==self.n_products+2}
+        
         # Perform all exchange actions for each agent
+        self.market.run_exchange(ExchangeDict)
         
         # Each agent chooses a market. or for now assign Market to each agent, or assign agent to market...
         # for agent
         # OR for market
         #        for agents in market
-        pass
+        #return price, mM, mE, n_tries
+        
         
     def update_consumption_deficit(self): # have each input an agent, then go through these in one loop
         # Calculate Consumption Defecit
@@ -187,6 +197,9 @@ class Environment:
             Agent.q[:] = 0
             Agent.c[:] = 0
             Agent.c_error[:] = 0
+            
+    def reset_market(self):
+        self.market.reset()
             
     def perform_actions(self, action_dict):
         
