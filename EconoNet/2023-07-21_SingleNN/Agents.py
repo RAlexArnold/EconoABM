@@ -15,9 +15,11 @@ class AbstractAgent():
         pass
     
 class Agent(AbstractAgent):
-    def __init__(self, QNN, Q=None, D=None, M=None, cg=None, n_actions=None):
+    def __init__(self, index, QNN, Q=None, D=None, M=None, cg=None, n_actions=None):
         
         super().__init__()
+        
+        self.index = index
         
         self.Q_eval = QNN
         

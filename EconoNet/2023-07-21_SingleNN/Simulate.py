@@ -102,10 +102,15 @@ class Simulate():
     
     def get_state(self, agent):
         
-        Xi_column_sums = agent.Ins.matrix.sum(axis=0)
+        # Remove instrument information from agent state
+        # In future, instrument states (stock of capital) can be property of instrument
+        # And only observed by agent when agent engages in agent-environment (inst) interaction?
+        #Xi_column_sums = agent.Ins.matrix.sum(axis=0)
     
-        observation = np.concatenate([agent.Q, agent.D, [agent.M], Xi_column_sums])
+        #observation = np.concatenate([agent.Q, agent.D, [agent.M], Xi_column_sums])
         #self.observation = observation
+        
+        observation = np.concatenate([agent.Q, agent.D, [agent.M], [agent.index]])
         return observation
         
         
@@ -158,7 +163,10 @@ class Simulate():
         
         self.update_market_arrays(ti)
         
-        for agent_index, agent in enumerate(self.agent_list):
+        #for agent_index, agent in enumerate(self.agent_list):
+        for agent in self.agent_list:
+            
+            agent_index = agent.index
             
             self.update_arrays(ti, agent_index, agent)
             
