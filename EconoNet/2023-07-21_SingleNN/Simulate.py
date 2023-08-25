@@ -25,6 +25,11 @@ class Simulate():
         
         self.dt = env.dt
         
+        # Introduce an internal timer for the agents
+        # internal_time = t % period
+        # Set to 10 for now
+        self.period = 10.
+        
         
         #self.state_dict = {}
         self.state_dict = dict(zip(self.agent_list, [np.nan]*self.n_agents))
@@ -100,7 +105,9 @@ class Simulate():
 
         return reward
     
-    def get_state(self, agent):
+    def get_state(self, agent, t):
+        # t is now included so the agent can have internal timer as part of state
+        internal_time = t % self.period
         
         # Remove instrument information from agent state
         # In future, instrument states (stock of capital) can be property of instrument
@@ -110,7 +117,7 @@ class Simulate():
         #observation = np.concatenate([agent.Q, agent.D, [agent.M], Xi_column_sums])
         #self.observation = observation
         
-        observation = np.concatenate([agent.Q, agent.D, [agent.M], [agent.index]])
+        observation = np.concatenate([agent.Q, agent.D, [agent.M], [agent.index], [internal_time]])
         return observation
         
         
@@ -157,7 +164,7 @@ class Simulate():
         
         return np.mean(X, weights=weights)
 
-    def sim_step(self, ti):
+    def sim_step(self, ti, t):
         
         self.epsilon_list.append(self.QNN.epsilon)
         
@@ -171,7 +178,7 @@ class Simulate():
             self.update_arrays(ti, agent_index, agent)
             
             # Get agent's state
-            observation = self.get_state(agent)
+            observation = self.get_state(agent, t)
             
             # Choose action
             action = agent.choose_action(observation)
@@ -189,7 +196,7 @@ class Simulate():
             observation = self.state_dict[agent]
             action = self.action_dict[agent]
             
-            observation_ = self.get_state(agent)
+            observation_ = self.get_state(agent, t)
             reward = self.update_reward(agent)
             
             self.QNN.store_transition(observation, action, reward, observation_, False)
@@ -213,5 +220,5 @@ class Simulate():
         
         for ti,t in enumerate(self.trange):
             
-            self.sim_step(ti)
+            self.sim_step(ti, t)
             
